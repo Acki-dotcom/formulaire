@@ -386,8 +386,31 @@ function splitNext(text) {
   if (!(exact || fuzzy)) return { text: text.trim(), next: false };
   return { text: toks.slice(0, toks.length - cut).join(" ").replace(/[\s,;:.!?-]+$/, "").trim(), next: true };
 }
+/* Identification à la voix : « nom Dupont », « prénom Ben », « fonction directeur » */
+function parseIdent(text) {
+  const parts = text.split(/\b(pr[ée]nom|nom|fonction)\b/i);
+  let key = null, found = false;
+  for (let k = 0; k < parts.length; k++) {
+    if (k % 2 === 1) { key = parts[k].toLowerCase().replace("é", "e"); continue; }
+    const v = parts[k].replace(/^[\s:;,.\-]+/, "").replace(/[\s.,;:!?]+$/, "");
+    if (!key || !v) continue;
+    const field = key === "nom" ? "#idNom" : key === "prenom" ? "#idPrenom" : "#idFonction";
+    $(field).value = v.charAt(0).toUpperCase() + v.slice(1);
+    found = true;
+  }
+  return found;
+}
+function voiceIdent(text) {
+  if (!parseIdent(text)) return;
+  if (identiteOk(false)) { if (active < 0) setActive(0, true); return; }
+  const manque = [];
+  if (!$("#idNom").value.trim()) manque.push("nom");
+  if (!$("#idPrenom").value.trim()) manque.push("prénom");
+  if (!$("#idFonction").value.trim()) manque.push("fonction");
+  diag("il manque encore : " + manque.join(", "));
+}
 function handleFinal(text, idx = active) {
-  if (idx < 0) return;
+  if (idx < 0) { if (text.trim()) voiceIdent(text); return; }
   const q = flat[idx];
   const sp = splitNext(text); const goNext = sp.next; text = sp.text;
   if (q.options) {
@@ -459,7 +482,7 @@ function flushAudio() {
       const text = (out && out.text || "").trim();
       if (lv) lv.textContent = "";
       diag("à l'écoute · entendu : « " + text + " »");
-      if (text && (had >= 0.6 || (splitNext(text).next && !splitNext(text).text) || (flat[idx].options && parseLetter(splitNext(text).text)))) handleFinal(text, idx);
+      if (text && (idx < 0 || had >= 0.6 ||(splitNext(text).next && !splitNext(text).text) || (flat[idx].options && parseLetter(splitNext(text).text)))) handleFinal(text, idx);
     } catch (e) { console.error(e); diag("erreur de transcription : " + (e.message || e)); }
   });
 }
@@ -505,7 +528,16 @@ function go(d) {
   setActive(n, true);
 }
 
-$("#btnStart").onclick = () => { if (!identiteOk(true)) return; micOn = true; setActive(Math.max(active, 0), true); };
+$("#btnStart").onclick = () => {
+  micOn = true;
+  if (!identiteOk(false)) {
+    $("#warn").textContent = "Dictez : « nom … », « prénom … », « fonction … » (ou tapez-les dans les champs).";
+    $("#warn").style.display = "block";
+    diag("à l'écoute des champs Nom, Prénom, Fonction");
+    refresh(); startRec(); return;
+  }
+  setActive(Math.max(active, 0), true);
+};
 $("#btnMic").onclick = () => { micOn = !micOn; if (micOn) { if (active < 0) active = 0; refresh(); startRec(); } else { stopRec(); refresh(); } };
 $("#btnNext").onclick = () => go(1);
 $("#btnPrev").onclick = () => go(-1);
