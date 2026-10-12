@@ -425,7 +425,7 @@ function handleFinal(text, idx = active) {
 }
 
 /* ---------- saisie vocale : modèle local Whisper (français) ---------- */
-let useSR = false, ready = false, asr = null, asrLoading = null;
+let useSR = true, ready = false, asr = null, asrLoading = null;
 let stream = null, actx = null, proc = null, srcNode = null;
 let chunks = [], inSpeech = false, speechSec = 0, silenceSec = 0, totalSec = 0, queue = Promise.resolve();
 const THRESH = 0.01, END_SIL = 0.7, MAX_SEC = 25, MIN_SPEECH = 0.1;
