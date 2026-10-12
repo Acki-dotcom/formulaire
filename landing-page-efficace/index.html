@@ -358,7 +358,7 @@ function parseLetter(text, strict) {
   if (strict && !pre.test(t)) return null;
   t = t.replace(pre, "").replace(/\s+(s il vous plait)$/, "");
   const M = { a: "A", ah: "A", ay: "A", eh: "A", ha: "A", b: "B", be: "B", bee: "B", bay: "B", bé: "B", c: "C", see: "C", sea: "C", cee: "C", ce: "C", se: "C", si: "C",
-    d: "D", dee: "D", de: "D", day: "D", di: "D", dea: "D", dey: "D", dé: "D", dd: "D" };
+    d: "D", dee: "D", de: "D", day: "D", di: "D", dea: "D", dey: "D", dé: "D", dd: "D", des: "D", dez: "D", as: "A", ai: "A", bi: "B", bey: "B", ci: "C", sei: "C", cey: "C" };
   return M[t] || null;
 }
 function readText(i) {
