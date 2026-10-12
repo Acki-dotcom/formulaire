@@ -210,9 +210,9 @@ flat.forEach((q, i) => {
     else { commitQ(i); refresh(); }
   });
   if (q.options) {
-    ta.placeholder = "D — votre propre réponse : tapez ici, ou dites D puis parlez (dites « suivant » à la fin)";
+    ta.placeholder = "";
     const box = document.createElement("div"); box.className = "opts";
-    q.options.map((t, k) => ["ABC"[k], t]).concat([["D", "Votre propre réponse : dictez-la ou tapez-la dans la case ci-dessous"]]).forEach(([L, t]) => {
+    q.options.map((t, k) => ["ABC"[k], t]).concat([["D", "Votre propre réponse"]]).forEach(([L, t]) => {
       const lab = document.createElement("label"); lab.className = "opt"; lab.dataset.l = L;
       lab.innerHTML = '<input type="checkbox" value="' + L + '"><b>' + L + '</b><span></span>';
       lab.querySelector("span").textContent = t;
@@ -363,7 +363,7 @@ function parseLetter(text, strict) {
 function readText(i) {
   const q = flat[i];
   let t = q.n.replace(/^0/, "") + ". " + q.q + " " + q.hint + ".";
-  if (q.options) t += " " + q.options.map((x, k) => "Option " + "ABC"[k] + " : " + x + ".").join(" ") + " Option D : votre propre réponse. Dites D, puis dictez-la.";
+  if (q.options) t += " " + q.options.map((x, k) => "Option " + "ABC"[k] + " : " + x + ".").join(" ");
   return t;
 }
 function appendText(text, idx = active) {
