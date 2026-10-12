@@ -295,6 +295,7 @@ function startSR() {
   rec = r;
   r.lang = micLang; r.continuous = true; r.interimResults = true;
   r.onresult = ev => {
+    diag("entendu : « " + Array.from(ev.results).map(x => x[0].transcript).join(" ") + " »");
     let interim = "";
     for (let k = ev.resultIndex; k < ev.results.length; k++) {
       const res = ev.results[k], t = res[0].transcript;
@@ -388,6 +389,14 @@ function splitNext(text) {
 }
 /* Identification à la voix : « nom Dupont », « prénom Ben », « fonction directeur » */
 function parseIdent(text) {
+  if (!/\b(pr[ée]nom|nom|fonction)\b/i.test(text)) {
+    /* Pas de mot-clé : la phrase remplit le premier champ vide (Nom, puis Prénom, puis Fonction) */
+    const vide = ["#idNom", "#idPrenom", "#idFonction"].find(s => !$(s).value.trim());
+    const v = text.trim().replace(/^[\s:;,.\-]+/, "").replace(/[\s.,;:!?]+$/, "");
+    if (!vide || !v) return false;
+    $(vide).value = v.charAt(0).toUpperCase() + v.slice(1);
+    return true;
+  }
   const parts = text.split(/\b(pr[ée]nom|nom|fonction)\b/i);
   let key = null, found = false;
   for (let k = 0; k < parts.length; k++) {
@@ -410,7 +419,7 @@ function voiceIdent(text) {
   diag("il manque encore : " + manque.join(", "));
 }
 function handleFinal(text, idx = active) {
-  if (idx < 0) { if (text.trim()) voiceIdent(text); return; }
+  if (idx < 0 || !identiteOk(false)) { if (text.trim()) voiceIdent(text); return; }
   const q = flat[idx];
   const sp = splitNext(text); const goNext = sp.next; text = sp.text;
   if (q.options) {
@@ -538,7 +547,7 @@ $("#btnStart").onclick = () => {
   }
   setActive(Math.max(active, 0), true);
 };
-$("#btnMic").onclick = () => { micOn = !micOn; if (micOn) { if (active < 0) active = 0; refresh(); startRec(); } else { stopRec(); refresh(); } };
+$("#btnMic").onclick = () => { micOn = !micOn; if (micOn) { if (active < 0 && identiteOk(false)) active = 0; refresh(); startRec(); } else { stopRec(); refresh(); } };
 $("#btnNext").onclick = () => go(1);
 $("#btnPrev").onclick = () => go(-1);
 $("#btnStop").onclick = () => { if (active < 0) active = 0; if (!micOn) micOn = true; stopSpeaking(); startRec(); refresh(); };
